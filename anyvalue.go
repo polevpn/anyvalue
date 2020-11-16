@@ -18,6 +18,8 @@ func Version() string {
 	return "0.5.0"
 }
 
+var AVNil = AnyValue{nil}
+
 type AnyValue struct {
 	data interface{}
 }
@@ -173,17 +175,7 @@ func (j *AnyValue) MarshalYAML() ([]byte, error) {
 	return yaml.Marshal(&j.data)
 }
 
-// Set modifies `AnyValue` map by `key` and `value`
-// Useful for changing single key/value in a `AnyValue` object easily.
-func (j *AnyValue) Set(key string, val interface{}) {
-	m, err := j.Map()
-	if err != nil {
-		return
-	}
-	m[key] = val
-}
-
-func (j *AnyValue) SetValue(path string, val interface{}) {
+func (j *AnyValue) Set(path string, val interface{}) {
 	branch := strings.Split(path, ".")
 	j.SetPath(branch, val)
 }
@@ -241,14 +233,14 @@ func (j *AnyValue) Del(key string) {
 //
 // useful for chaining operations (to traverse a nested JSON):
 //    js.Get("top_level").Get("dict").Get("value").Int()
-func (j *AnyValue) Get(key string) *AnyValue {
+func (j *AnyValue) getValue(key string) *AnyValue {
 	m, err := j.Map()
 	if err == nil {
 		if val, ok := m[key]; ok {
 			return &AnyValue{val}
 		}
 	}
-	return &AnyValue{nil}
+	return &AVNil
 }
 
 // GetPath searches for the item as specified by the branch
@@ -258,7 +250,7 @@ func (j *AnyValue) Get(key string) *AnyValue {
 func (j *AnyValue) GetPath(branch ...string) *AnyValue {
 	jin := j
 	for _, p := range branch {
-		jin = jin.Get(p)
+		jin = jin.getValue(p)
 	}
 	return jin
 }
@@ -267,13 +259,35 @@ func (j *AnyValue) GetPath(branch ...string) *AnyValue {
 // without the need to deep dive using Get()'s.
 //
 //   js.GetValue("top_level.dict")
-func (j *AnyValue) GetValue(path string) *AnyValue {
+func (j *AnyValue) Get(path string) *AnyValue {
 	branch := strings.Split(path, ".")
 	jin := j
 	for _, p := range branch {
-		jin = jin.Get(p)
+		jin = jin.getValue(p)
 	}
 	return jin
+}
+
+// CheckGet returns a pointer to a new `AnyValue` object and
+// a `bool` identifying success or failure
+//
+// useful for chained operations when success is important:
+//    if data, ok := js.Get("top_level").Exist("inner"); ok {
+//        log.Println(data)
+//    }
+func (j *AnyValue) Exist(path string) (*AnyValue, bool) {
+	branch := strings.Split(path, ".")
+	jin := j
+	for _, p := range branch {
+
+		jin = jin.getValue(p)
+	}
+
+	if jin != &AVNil {
+		return jin, true
+	} else {
+		return jin, false
+	}
 }
 
 // GetIndex returns a pointer to a new `AnyValue` object
@@ -289,24 +303,7 @@ func (j *AnyValue) GetIndex(index int) *AnyValue {
 			return &AnyValue{a[index]}
 		}
 	}
-	return &AnyValue{nil}
-}
-
-// CheckGet returns a pointer to a new `AnyValue` object and
-// a `bool` identifying success or failure
-//
-// useful for chained operations when success is important:
-//    if data, ok := js.Get("top_level").CheckGet("inner"); ok {
-//        log.Println(data)
-//    }
-func (j *AnyValue) CheckGet(key string) (*AnyValue, bool) {
-	m, err := j.Map()
-	if err == nil {
-		if val, ok := m[key]; ok {
-			return &AnyValue{val}, true
-		}
-	}
-	return nil, false
+	return &AVNil
 }
 
 // Map type asserts to `map`

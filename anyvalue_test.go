@@ -30,8 +30,8 @@ func TestAnyvalueYaml(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(config.Get("listen").AsStr())
-	t.Log(config.GetValue("redis.addr").AsStr())
-	t.Log(config.GetValue("redis.max_conn").AsInt())
+	t.Log(config.Get("redis.addr").AsStr())
+	t.Log(config.Get("redis.max_conn").AsInt())
 }
 
 func TestAnyvalueJson(t *testing.T) {
@@ -41,6 +41,17 @@ func TestAnyvalueJson(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(config.Get("listen").AsStr())
-	t.Log(config.GetValue("redis.addr").AsStr())
-	t.Log(config.GetValue("redis.max_conn").AsInt())
+	t.Log(config.Get("redis.addr").AsStr())
+	t.Log(config.Get("redis.max_conn").AsInt())
+}
+
+func TestExist(t *testing.T) {
+	config, err := LoadConfigJson("./config.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(config.Exist("listen"))
+	t.Log(config.Exist("redis.max_conn"))
+	t.Log(config.Exist("redis.max_conn1"))
+
 }
