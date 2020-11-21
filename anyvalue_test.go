@@ -66,3 +66,17 @@ func TestSet(t *testing.T) {
 	}
 	t.Log(string(out))
 }
+
+func TestMsgPack(t *testing.T) {
+	av := New().Set("a", "hello").Set("b", 100).Set("c", "haha").
+		Set("data.name", "starjiang").Set("data.age", 100)
+	out, err := av.EncodeMsgPack()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("out=%v", string(out))
+	av, err = NewFromMsgPack(out)
+	out, err = av.EncodeJson()
+	t.Logf("out=%v", string(out))
+}

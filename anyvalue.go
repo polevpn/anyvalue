@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/vmihailenco/msgpack/v5"
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,6 +32,14 @@ func (j *AnyValue) UnmarshalJSON(p []byte) error {
 	return dec.Decode(&j.data)
 }
 
+// Implements the json.Unmarshaler interface.
+func (j *AnyValue) UnmarshalMsgPack(p []byte) error {
+
+	dec := msgpack.NewDecoder(bytes.NewReader(p))
+	dec.SetCustomStructTag("json")
+	return dec.Decode(&j.data)
+}
+
 // Implements the yaml.Unmarshaler interface.
 func (j *AnyValue) UnmarshalYAML(p []byte) error {
 	dec := yaml.NewDecoder(bytes.NewBuffer(p))
@@ -42,6 +51,15 @@ func NewFromJsonReader(r io.Reader) (*AnyValue, error) {
 	j := new(AnyValue)
 	dec := json.NewDecoder(r)
 	dec.UseNumber()
+	err := dec.Decode(&j.data)
+	return j, err
+}
+
+// NewFromReader returns a *AnyValue by decoding from an io.Reader
+func NewFromMsgPackReader(r io.Reader) (*AnyValue, error) {
+	j := new(AnyValue)
+	dec := msgpack.NewDecoder(r)
+	dec.SetCustomStructTag("json")
 	err := dec.Decode(&j.data)
 	return j, err
 }
@@ -115,7 +133,7 @@ func (j *AnyValue) Uint64() (uint64, error) {
 	return 0, errors.New("invalid value type")
 }
 
-// NewAnyValue returns a pointer to a new `AnyValue` object
+// NewFromJson returns a pointer to a new `AnyValue` object
 // after unmarshaling `body` bytes
 func NewFromJson(body []byte) (*AnyValue, error) {
 	j := new(AnyValue)
@@ -126,7 +144,18 @@ func NewFromJson(body []byte) (*AnyValue, error) {
 	return j, nil
 }
 
-// NewAnyValue returns a pointer to a new `AnyValue` object
+// NewFromMsgPack returns a pointer to a new `AnyValue` object
+// after unmarshaling `body` bytes
+func NewFromMsgPack(body []byte) (*AnyValue, error) {
+	j := new(AnyValue)
+	err := j.UnmarshalMsgPack(body)
+	if err != nil {
+		return nil, err
+	}
+	return j, nil
+}
+
+// NewFromYaml returns a pointer to a new `AnyValue` object
 // after unmarshaling `body` bytes
 func NewFromYaml(body []byte) (*AnyValue, error) {
 	j := new(AnyValue)
@@ -154,6 +183,11 @@ func (j *AnyValue) EncodeJson() ([]byte, error) {
 	return j.MarshalJSON()
 }
 
+// Encode returns its marshaled data as `[]byte`
+func (j *AnyValue) EncodeMsgPack() ([]byte, error) {
+	return j.MarshalMsgPack()
+}
+
 // EncodePretty returns its marshaled data as `[]byte` with indentation
 func (j *AnyValue) EncodeJsonPretty() ([]byte, error) {
 	return json.MarshalIndent(&j.data, "", "  ")
@@ -164,12 +198,21 @@ func (j *AnyValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&j.data)
 }
 
+// Implements the msgpack.Marshaler interface.
+func (j *AnyValue) MarshalMsgPack() ([]byte, error) {
+	var buf bytes.Buffer
+	enc := msgpack.NewEncoder(&buf)
+	enc.SetCustomStructTag("json")
+	err := enc.Encode(&j.data)
+	return buf.Bytes(), err
+}
+
 // Encode returns its marshaled data as `[]byte`
 func (j *AnyValue) EncodeYaml() ([]byte, error) {
 	return j.MarshalYAML()
 }
 
-// Implements the json.Marshaler interface.
+// Implements the yaml.Marshaler interface.
 func (j *AnyValue) MarshalYAML() ([]byte, error) {
 
 	return yaml.Marshal(&j.data)
