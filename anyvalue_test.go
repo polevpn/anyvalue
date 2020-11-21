@@ -55,3 +55,14 @@ func TestExist(t *testing.T) {
 	t.Log(config.Exist("redis.max_conn1"))
 
 }
+
+func TestSet(t *testing.T) {
+	av := New().Set("a", "hello").Set("b", 100).Set("c", "haha").
+		Set("data.name", "starjiang").Set("data.age", 100)
+	out, err := av.EncodeJson()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(string(out))
+}

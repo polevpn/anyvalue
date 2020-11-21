@@ -175,17 +175,17 @@ func (j *AnyValue) MarshalYAML() ([]byte, error) {
 	return yaml.Marshal(&j.data)
 }
 
-func (j *AnyValue) Set(path string, val interface{}) {
+func (j *AnyValue) Set(path string, val interface{}) *AnyValue {
 	branch := strings.Split(path, ".")
-	j.SetPath(branch, val)
+	return j.SetPath(branch, val)
 }
 
 // SetPath modifies `AnyValue`, recursively checking/creating map keys for the supplied path,
 // and then finally writing in the value
-func (j *AnyValue) SetPath(branch []string, val interface{}) {
+func (j *AnyValue) SetPath(branch []string, val interface{}) *AnyValue {
 	if len(branch) == 0 {
 		j.data = val
-		return
+		return j
 	}
 
 	// in order to insert our branch, we need map[string]interface{}
@@ -217,6 +217,7 @@ func (j *AnyValue) SetPath(branch []string, val interface{}) {
 
 	// add remaining k/v
 	curr[branch[len(branch)-1]] = val
+	return j
 }
 
 // Del modifies `AnyValue` map by deleting `key` if it is present.
