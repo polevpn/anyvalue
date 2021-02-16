@@ -173,6 +173,13 @@ func New() *AnyValue {
 	}
 }
 
+// New returns a pointer to a new, empty `AnyValue` object
+func NewFromInf(data interface{}) *AnyValue {
+	return &AnyValue{
+		data: data,
+	}
+}
+
 // Interface returns the underlying data
 func (j *AnyValue) Interface() interface{} {
 	return j.data
