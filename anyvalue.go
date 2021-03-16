@@ -19,7 +19,7 @@ func Version() string {
 	return "0.5.0"
 }
 
-var AVNil = AnyValue{nil}
+var AVNil = &AnyValue{nil}
 
 type AnyValue struct {
 	data interface{}
@@ -291,7 +291,7 @@ func (j *AnyValue) getValue(key string) *AnyValue {
 			return &AnyValue{val}
 		}
 	}
-	return &AVNil
+	return AVNil
 }
 
 // GetPath searches for the item as specified by the branch
@@ -334,10 +334,25 @@ func (j *AnyValue) Exist(path string) (*AnyValue, bool) {
 		jin = jin.getValue(p)
 	}
 
-	if jin != &AVNil {
+	if jin != AVNil {
 		return jin, true
 	} else {
 		return jin, false
+	}
+}
+
+func (j *AnyValue) Has(path string) bool {
+	branch := strings.Split(path, ".")
+	jin := j
+	for _, p := range branch {
+
+		jin = jin.getValue(p)
+	}
+
+	if jin != AVNil {
+		return true
+	} else {
+		return false
 	}
 }
 
@@ -354,7 +369,7 @@ func (j *AnyValue) GetIndex(index int) *AnyValue {
 			return &AnyValue{a[index]}
 		}
 	}
-	return &AVNil
+	return AVNil
 }
 
 // Map type asserts to `map`
