@@ -103,6 +103,15 @@ func (j *AnyValue) Int() (int, error) {
 	return 0, errors.New("invalid value type")
 }
 
+func (j *AnyValue) IsNumber() bool {
+
+	_, err := j.Int()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 // Int64 coerces into an int64
 func (j *AnyValue) Int64() (int64, error) {
 	switch j.data.(type) {
@@ -390,12 +399,28 @@ func (j *AnyValue) Map() (map[string]interface{}, error) {
 	return nil, errors.New("type assertion to map[string]interface{} failed")
 }
 
+func (j *AnyValue) IsMap() bool {
+	if _, ok := (j.data).(map[string]interface{}); ok {
+		return true
+	} else if _, ok := (j.data).(map[interface{}]interface{}); ok {
+		return true
+	}
+	return false
+}
+
 // Array type asserts to an `array`
 func (j *AnyValue) Array() ([]interface{}, error) {
 	if a, ok := (j.data).([]interface{}); ok {
 		return a, nil
 	}
 	return nil, errors.New("type assertion to []interface{} failed")
+}
+
+func (j *AnyValue) IsArray() bool {
+	if _, ok := (j.data).([]interface{}); ok {
+		return true
+	}
+	return false
 }
 
 // Bool type asserts to `bool`
@@ -406,12 +431,26 @@ func (j *AnyValue) Bool() (bool, error) {
 	return false, errors.New("type assertion to bool failed")
 }
 
+func (j *AnyValue) IsBool() bool {
+	if _, ok := (j.data).(bool); ok {
+		return true
+	}
+	return false
+}
+
 // String type asserts to `string`
 func (j *AnyValue) Str() (string, error) {
 	if s, ok := (j.data).(string); ok {
 		return s, nil
 	}
 	return "", errors.New("type assertion to string failed")
+}
+
+func (j *AnyValue) IsStr() bool {
+	if _, ok := (j.data).(string); ok {
+		return true
+	}
+	return false
 }
 
 // Bytes type asserts to `[]byte`

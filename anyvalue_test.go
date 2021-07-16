@@ -29,9 +29,44 @@ func TestAnyvalueYaml(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	t.Log(config.Get("listen").AsStr())
 	t.Log(config.Get("redis.addr").AsStr())
 	t.Log(config.Get("redis.max_conn").AsInt())
+}
+
+func TestAnyvalueCheck(t *testing.T) {
+
+	config, err := LoadConfigYaml("./config.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(config.Get("listen").IsArray())
+	t.Log(config.Get("listen").IsMap())
+	t.Log(config.Get("listen").IsBool())
+	t.Log(config.Get("listen").IsStr())
+	t.Log(config.Get("listen").IsNumber())
+
+	t.Log(config.Get("redis").IsMap())
+	t.Log(config.Get("redis.max_conn").IsNumber())
+}
+
+func TestAnyvalueCheck2(t *testing.T) {
+
+	config, err := LoadConfigJson("./config.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(config.Get("listen").IsArray())
+	t.Log(config.Get("listen").IsMap())
+	t.Log(config.Get("listen").IsBool())
+	t.Log(config.Get("listen").IsStr())
+	t.Log(config.Get("listen").IsNumber())
+
+	t.Log(config.Get("redis").IsMap())
+	t.Log(config.Get("redis.max_conn").IsNumber())
 }
 
 func TestAnyvalueJson(t *testing.T) {
